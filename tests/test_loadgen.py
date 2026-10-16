@@ -82,11 +82,14 @@ def test_run_against_a_live_server_has_no_failures_and_the_right_volume():
     assert s["versions"] == {"t": s["total"]}
 
 
-def test_run_against_a_closed_port_reports_refused():
+def test_run_against_a_closed_port_counts_every_request_as_failed():
     records = loadgen.run(f"http://127.0.0.1:{_free_port()}/work", rate=20, duration=0.5, workers=4, timeout=1)
     s = loadgen.summarise(records, 0.5)
     assert s["total"] > 0 and s["ok"] == 0
-    assert set(s["errors"]) == {"refused"}
+    # Linux refuses a closed localhost port at once; Windows retries the SYN, so the 1 s timeout
+    # fires first. Either way every request must be counted as a failure of one of these kinds.
+    assert set(s["errors"]) <= {"refused", "timeout"}
+    assert s["failed"] == s["total"]
 
 
 def test_aggregate_combines_runs_and_keeps_per_run_counts():
