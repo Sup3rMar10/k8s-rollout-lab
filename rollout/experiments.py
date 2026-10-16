@@ -125,10 +125,11 @@ def exp_rollout(kube, reps, duration=50, trigger_at=6, rate=40):
             t0 = time.monotonic()
             kube.run("rollout", "restart", "deploy/app")
             rollout_s = kube.rollout_status(timeout=120)
+            covered = trigger_at + (time.monotonic() - t0) < duration
             summary = finish_loadgen(kube, lg, duration)
             run = {"variant": variant, "rep": rep, "rollout_seconds": rollout_s,
                    "trigger_at_s": trigger_at,
-                   "rollout_covered_by_load": trigger_at + (time.monotonic() - t0) < duration,
+                   "rollout_covered_by_load": covered,
                    "load": summary}
             runs.append(run)
             record("rollout", run)
@@ -225,6 +226,8 @@ def exp_badrelease(kube, reps, duration=75, trigger_at=6, observe=35, rate=40):
 
 
 # ---- experiment 3: node drain and the PodDisruptionBudget -------------------------------------
+# NOT RUN for the published results: it needs the 3-node cluster, and the laptop ran out of memory
+# twice. Only one-repetition pilots were run, and they were discarded. Opt-in: `experiment drain`.
 
 def exp_drain(kube, reps, duration=70, rate=40):
     variants = ["full", "no-pdb"]
@@ -368,7 +371,7 @@ def run(name, reps=None):
     kube = Kube()
     if not kube.reachable():
         raise SystemExit("cluster not reachable: run `python -m rollout cluster-up` first")
-    names = ["validate", "netpol", "rollout", "badrelease", "drain"] if name == "all" else [name]
+    names = ["validate", "netpol", "rollout", "badrelease"] if name == "all" else [name]  # drain is opt-in
     summary = load_summary()
     summary["environment"] = {**versions(), "recorded": datetime.now(timezone.utc).isoformat(timespec="seconds")}
     fns = {"rollout": exp_rollout, "badrelease": exp_badrelease, "drain": exp_drain,
@@ -376,5 +379,6 @@ def run(name, reps=None):
     for n in names:
         say(f"=== experiment {n}")
         summary[n] = fns[n](kube, reps or DEFAULT_REPS[n])
+        summary[n]["cluster_nodes"] = summary["environment"]["nodes"]
         save_summary(summary)
     return {n: summary[n] for n in names}

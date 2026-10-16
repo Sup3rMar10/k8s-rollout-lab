@@ -47,10 +47,11 @@ def load_image():
     return "image-archive"
 
 
-def up():
+def up(small=False):
+    config = ROOT / ("kind-config-small.yaml" if small else "kind-config.yaml")
     if not cluster_exists():
         if _run([kind_bin(), "create", "cluster", "--name", CLUSTER, "--config",
-                 ROOT / "kind-config.yaml", "--wait", "180s"]).returncode:
+                 config, "--wait", "180s"]).returncode:
             raise RuntimeError("kind create cluster failed")
     build_image()
     print("image loaded via", load_image())

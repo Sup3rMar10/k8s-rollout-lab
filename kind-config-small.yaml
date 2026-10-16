@@ -1,0 +1,8 @@
+# One control-plane node and one worker. Used for the rolling-restart experiment when the
+# laptop did not have the memory to run three nodes plus the load generator reliably.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: rollout-lab
+nodes:
+  - role: control-plane
+  - role: worker

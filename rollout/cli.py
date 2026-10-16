@@ -8,11 +8,14 @@ def main(argv=None):
     ap = argparse.ArgumentParser(prog="python -m rollout", description=__doc__)
     sub = ap.add_subparsers(dest="cmd", required=True)
 
-    sub.add_parser("cluster-up", help="create the kind cluster, build and load the image")
+    up = sub.add_parser("cluster-up", help="create the kind cluster, build and load the image")
+    up.add_argument("--small", action="store_true",
+                    help="1 control-plane + 1 worker (kind-config-small.yaml) instead of 1 + 2")
     sub.add_parser("cluster-down", help="delete the kind cluster")
 
     ex = sub.add_parser("experiment", help="run one experiment against the cluster")
-    ex.add_argument("name", choices=["rollout", "badrelease", "drain", "netpol", "validate", "all"])
+    ex.add_argument("name", choices=["rollout", "badrelease", "drain", "netpol", "validate", "all"],
+                    help="all = validate, netpol, rollout, badrelease (drain is opt-in and was not run for the results)")
     ex.add_argument("--reps", type=int, default=None, help="repetitions per configuration")
 
     sub.add_parser("report", help="rebuild the chart and the README results block from results/summary.json")
@@ -22,7 +25,7 @@ def main(argv=None):
 
     if args.cmd == "cluster-up":
         from . import cluster
-        cluster.up()
+        cluster.up(small=args.small)
     elif args.cmd == "cluster-down":
         from . import cluster
         cluster.down()
