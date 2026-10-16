@@ -1,0 +1,24 @@
+# Config A: what a Deployment looks like when nobody has thought about rollouts.
+# Same image, same app code. No startup or readiness probe (the pod counts as ready the
+# moment its container starts), no preStop sleep, and the Kubernetes default rolling
+# update (25% surge, 25% unavailable).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../overlays/dev
+patches:
+  - target:
+      kind: Deployment
+      name: app
+    patch: |-
+      - op: remove
+        path: /spec/template/spec/containers/0/startupProbe
+      - op: remove
+        path: /spec/template/spec/containers/0/readinessProbe
+      - op: remove
+        path: /spec/template/spec/containers/0/lifecycle
+      - op: replace
+        path: /spec/strategy/rollingUpdate
+        value:
+          maxSurge: 25%
+          maxUnavailable: 25%

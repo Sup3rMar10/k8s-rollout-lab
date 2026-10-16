@@ -1,0 +1,18 @@
+# Config C: probes added, but no preStop sleep and the default rolling update numbers.
+# Isolates how much of the improvement comes from readiness gating alone.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../overlays/dev
+patches:
+  - target:
+      kind: Deployment
+      name: app
+    patch: |-
+      - op: remove
+        path: /spec/template/spec/containers/0/lifecycle
+      - op: replace
+        path: /spec/strategy/rollingUpdate
+        value:
+          maxSurge: 25%
+          maxUnavailable: 25%

@@ -1,0 +1,145 @@
+{
+  "environment": {
+    "kind": "kind v0.33.0 go1.26.7 windows/amd64",
+    "kubectl_client": "v1.36.1",
+    "kubernetes_server": "v1.37.0",
+    "node_image": "Debian GNU/Linux 13 (trixie)",
+    "nodes": [
+      "rollout-lab-control-plane",
+      "rollout-lab-worker",
+      "rollout-lab-worker2"
+    ],
+    "container_runtime": "containerd://2.3.4",
+    "docker": "29.8.2",
+    "python": "3.13.13",
+    "recorded": "2026-10-16T13:55:07+00:00"
+  },
+  "netpol": {
+    "reps": 3,
+    "client_with_label": [
+      "200",
+      "200",
+      "200"
+    ],
+    "pod_without_label": [
+      "TimeoutError",
+      "TimeoutError",
+      "TimeoutError"
+    ],
+    "policy_enforced": true
+  },
+  "validate": {
+    "server_side_dry_run": {
+      "full": true,
+      "naive": true,
+      "probes": true,
+      "no-pdb": true
+    },
+    "prod_overlay": {
+      "deployed": true,
+      "replicas_ready": 4,
+      "pdb_min_available": 3,
+      "hpa_min_max": [
+        4,
+        12
+      ],
+      "hpa_conditions": [
+        {
+          "type": "AbleToScale",
+          "status": "True",
+          "reason": "SucceededGetScale"
+        },
+        {
+          "type": "ScalingActive",
+          "status": "False",
+          "reason": "FailedGetResourceMetric"
+        }
+      ]
+    }
+  },
+  "badrelease": {
+    "config": {
+      "reps": 3,
+      "rate_rps": 40,
+      "duration_s": 75,
+      "bad_release_at_s": 6,
+      "observation_window_s": 35,
+      "progressDeadlineSeconds": 20
+    },
+    "variants": {
+      "naive": {
+        "label": "A: no probes, no preStop, default rolling update",
+        "runs": 3,
+        "requests": 9000,
+        "failed": 4887,
+        "failure_rate": 0.543,
+        "failed_per_run": [
+          1665,
+          1631,
+          1591
+        ],
+        "mean_failed_per_run": 1629.0,
+        "min_failed_per_run": 1591,
+        "max_failed_per_run": 1665,
+        "runs_with_zero_failures": 0,
+        "errors": {
+          "refused": 1301,
+          "reset": 16,
+          "timeout": 95,
+          "http_500": 3475
+        },
+        "runs_where_bad_rollout_completed": 3,
+        "runs_where_deadline_exceeded_detected": 0,
+        "seconds_to_deadline_exceeded": {
+          "n": 0
+        },
+        "min_available_replicas": 3,
+        "bad_responses": 3475,
+        "undo_seconds": {
+          "n": 3,
+          "mean": 2.920068366661629,
+          "min": 2.3684589999902528,
+          "max": 3.3823594999994384,
+          "stdev": 0.5128175758338351
+        }
+      },
+      "full": {
+        "label": "B: probes + preStop + maxUnavailable 0",
+        "runs": 3,
+        "requests": 9000,
+        "failed": 1,
+        "failure_rate": 0.00011111111111111112,
+        "failed_per_run": [
+          0,
+          1,
+          0
+        ],
+        "mean_failed_per_run": 0.3333333333333333,
+        "min_failed_per_run": 0,
+        "max_failed_per_run": 1,
+        "runs_with_zero_failures": 2,
+        "errors": {
+          "reset": 1
+        },
+        "runs_where_bad_rollout_completed": 0,
+        "runs_where_deadline_exceeded_detected": 3,
+        "seconds_to_deadline_exceeded": {
+          "n": 3,
+          "mean": 20.876188166672364,
+          "min": 20.490464500006055,
+          "max": 21.361485800007358,
+          "stdev": 0.4439659417034062
+        },
+        "min_available_replicas": 3,
+        "bad_responses": 0,
+        "undo_seconds": {
+          "n": 3,
+          "mean": 0.2638107999955537,
+          "min": 0.1409055999974953,
+          "max": 0.42371089999505784,
+          "stdev": 0.1449868145600336
+        }
+      }
+    }
+  }
+}

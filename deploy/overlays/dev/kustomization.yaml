@@ -1,0 +1,5 @@
+# Local kind cluster. Identical to the base; this is the configuration the experiments use.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base

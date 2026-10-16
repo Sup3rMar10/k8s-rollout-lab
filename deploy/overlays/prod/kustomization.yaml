@@ -1,0 +1,38 @@
+# What changes for production: its own namespace, more replicas and headroom, no
+# artificial startup delay, a stricter PDB, and an HPA. The HPA needs metrics-server,
+# which the local kind cluster does not have, so its scaling is not exercised here.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: rollout-lab-prod
+resources:
+  - ../../base
+  - hpa.yaml
+patches:
+  - target:
+      kind: Deployment
+      name: app
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 4
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests:
+            cpu: 200m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+      - op: replace
+        path: /spec/template/spec/containers/0/env/0/value
+        value: "0"
+  - target:
+      kind: PodDisruptionBudget
+      name: app
+    patch: |-
+      - op: remove
+        path: /spec/maxUnavailable
+      - op: add
+        path: /spec/minAvailable
+        value: 3

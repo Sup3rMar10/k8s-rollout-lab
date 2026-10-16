@@ -1,0 +1,15 @@
+# The full configuration without its PodDisruptionBudget, for the drain experiment.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../overlays/dev
+patches:
+  - target:
+      kind: PodDisruptionBudget
+      name: app
+    patch: |-
+      $patch: delete
+      apiVersion: policy/v1
+      kind: PodDisruptionBudget
+      metadata:
+        name: app
